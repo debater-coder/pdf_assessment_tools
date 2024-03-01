@@ -1,5 +1,38 @@
 from pypdf import PdfReader, PdfWriter
-import click
+
+import tkinter as tk
+import tkinter.ttk as ttk
+from tkinter.filedialog import askopenfilename, asksaveasfilename
+
+
+input_filename = ""
+output_filename = ""
+
+
+def select_input_file():
+    filepath = askopenfilename(
+        filetypes=[("Portable Document", "*.pdf"), ("All Files", "*.*")]
+    )
+    if not filepath:
+        return
+
+    global input_filename
+    input_filename = filepath
+
+    lbl_input_file["text"] = f"Input file: {input_filename}"
+
+
+def select_output_file():
+    filepath = asksaveasfilename(
+        filetypes=[("Portable Document", "*.pdf"), ("All Files", "*.*")]
+    )
+    if not filepath:
+        return
+
+    global output_filename
+    output_filename = filepath
+
+    lbl_output_file["text"] = f"Output file: {output_filename}"
 
 
 def reorder(n):
@@ -15,11 +48,11 @@ def reorder(n):
     return [pages_order.index(i + 1) for i in range(2 * n)]
 
 
-@click.command()
-@click.option('--reverse', is_flag=True, help="Was it scanned in reverse order?")
-@click.argument('input_filename', type=click.Path(exists=True))
-@click.argument('output_filename')
-def main(reverse, input_filename, output_filename):
+def main():
+    global input_filename, output_filename
+
+    reverse = False
+
     reader = PdfReader(input_filename)
     writer = PdfWriter()
 
@@ -48,6 +81,26 @@ def main(reverse, input_filename, output_filename):
     with open(output_filename, "wb") as fp:
         writer.write(fp)
 
+    input_filename = ""
+    output_filename = ""
+
 
 if __name__ == '__main__':
-    main()
+    window = tk.Tk()
+
+    lbl_input_file = tk.Label(text="Input file: ")
+    lbl_input_file.pack()
+
+    lbl_output_file = tk.Label(text="Output file: ")
+    lbl_output_file.pack()
+
+    btn_input = ttk.Button(text="Select Input File", command=select_input_file)
+    btn_save = ttk.Button(text="Save As...", command=select_output_file)
+
+    btn_input.pack()
+    btn_save.pack()
+
+    btn_run = ttk.Button(text="Convert", command=main)
+    btn_run.pack()
+
+    window.mainloop()
